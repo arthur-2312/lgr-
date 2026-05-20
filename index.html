@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador de LGR</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="controls">
+        <header class="brand">
+          <p>Controle de sistemas dinamicos</p>
+          <h1>Simulador de LGR</h1>
+          <span id="systemStatus" class="status-pill">Estavel</span>
+        </header>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Funcao de transferencia</h2>
+            <button id="resetButton" class="icon-button" title="Restaurar exemplo">↺</button>
+          </div>
+
+          <div class="transfer">
+            <span>G(s) =</span>
+            <div class="fraction">
+              <input id="numInput" value="1" aria-label="Coeficientes do numerador" />
+              <div></div>
+              <input id="denInput" value="1, 2, 2, 0" aria-label="Coeficientes do denominador" />
+            </div>
+          </div>
+
+          <p class="hint">Use coeficientes em ordem decrescente. Ex.: <strong>1, 2, 0</strong> vira s^2 + 2s + 0, preservando o termo ausente.</p>
+
+          <div class="examples">
+            <button class="chip active" data-num="1" data-den="1, 2, 2, 0">Integrador</button>
+            <button class="chip" data-num="1, 2, 0" data-den="1, 4, 5, 0">Com zeros</button>
+            <button class="chip" data-num="1" data-den="1, 3, 2">2a ordem</button>
+            <button class="chip" data-num="1, 3" data-den="1, 6, 11, 6">Zero real</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Ganho K</h2>
+            <output id="gainValue">1</output>
+          </div>
+          <input id="gainSlider" type="range" min="0" max="100" step="0.01" value="1" />
+          <div class="grid-2">
+            <label>
+              K minimo
+              <input id="kMinInput" type="number" step="0.1" value="0" />
+            </label>
+            <label>
+              K maximo
+              <input id="kMaxInput" type="number" step="1" value="100" />
+            </label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Sliders do numerador</h2>
+            <div class="button-pair">
+              <button id="numDegreeDown" class="mini-button">− grau</button>
+              <button id="numDegreeUp" class="mini-button">+ grau</button>
+            </div>
+          </div>
+          <div id="numSliders" class="slider-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Sliders do denominador</h2>
+            <div class="button-pair">
+              <button id="denDegreeDown" class="mini-button">− grau</button>
+              <button id="denDegreeUp" class="mini-button">+ grau</button>
+            </div>
+          </div>
+          <div id="denSliders" class="slider-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="section-heading">
+            <h2>Visualizacao</h2>
+          </div>
+          <div class="switch-grid">
+            <label><input id="showAsymptotes" type="checkbox" checked /> Assintotas</label>
+            <label><input id="showRealAxis" type="checkbox" checked /> Eixo real</label>
+            <label><input id="showBreakpoints" type="checkbox" checked /> Breakaway</label>
+            <label><input id="showImagCross" type="checkbox" checked /> Eixo imaginario</label>
+            <label><input id="showDesignGrid" type="checkbox" /> zeta / wn</label>
+            <label><input id="showAngles" type="checkbox" /> Angulos</label>
+          </div>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <div class="toolbar">
+          <div>
+            <h2>Lugar Geometrico das Raizes</h2>
+            <p id="closedLoopFormula">D(s) + K N(s) = 0</p>
+          </div>
+          <div class="legend">
+            <span><i class="line"></i>LGR</span>
+            <span><i class="pole"></i>Polos</span>
+            <span><i class="zero"></i>Zeros</span>
+            <span><i class="selected"></i>K atual</span>
+          </div>
+        </div>
+
+        <div class="plot-grid">
+          <article class="plot-card root-card">
+            <canvas id="rootCanvas" width="960" height="620"></canvas>
+            <p id="clickReadout" class="hint">Clique no LGR para estimar K naquele ponto.</p>
+          </article>
+          <article class="plot-card">
+            <div class="section-heading compact">
+              <h2>Resposta ao degrau</h2>
+              <span id="stepInfo">0 a 10 s</span>
+            </div>
+            <canvas id="stepCanvas" width="640" height="360"></canvas>
+          </article>
+        </div>
+
+        <div class="metrics">
+          <article>
+            <span>Polos fechados</span>
+            <strong id="closedPoles">-</strong>
+          </article>
+          <article>
+            <span>Zeros abertos</span>
+            <strong id="openZeros">-</strong>
+          </article>
+          <article>
+            <span>Polinomio caracteristico</span>
+            <strong id="characteristicPoly">-</strong>
+          </article>
+          <article>
+            <span>Desempenho</span>
+            <strong id="performanceMetrics">-</strong>
+          </article>
+        </div>
+
+        <article class="study-summary">
+          <div class="section-heading compact">
+            <h2>Resumo do LGR</h2>
+            <span id="branchCount">-</span>
+          </div>
+          <ol id="studySteps"></ol>
+        </article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

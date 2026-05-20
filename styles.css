@@ -1,0 +1,421 @@
+:root {
+  --bg: #f6f7f3;
+  --ink: #17201f;
+  --muted: #66706d;
+  --line: #d8ded8;
+  --panel: #ffffff;
+  --accent: #0f7a6c;
+  --red: #d84f31;
+  --blue: #2b6cb0;
+  --gold: #b88310;
+  --shadow: 0 18px 45px rgba(33, 44, 42, 0.11);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+  gap: 18px;
+  min-height: 100vh;
+  padding: 18px;
+}
+
+.controls,
+.workspace {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow);
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  padding: 20px;
+}
+
+.workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 20px;
+}
+
+.brand {
+  position: relative;
+}
+
+.brand p,
+.hint,
+.toolbar p,
+.metrics span,
+.compact span {
+  color: var(--muted);
+}
+
+.brand p,
+h1,
+h2,
+p,
+ol {
+  margin: 0;
+}
+
+.brand p {
+  margin-bottom: 5px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+h1 {
+  max-width: 9ch;
+  font-size: clamp(2.15rem, 3vw, 3rem);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+.status-pill {
+  display: inline-block;
+  margin-top: 14px;
+  border: 1px solid rgba(15, 122, 108, 0.25);
+  border-radius: 999px;
+  color: #07594f;
+  background: #e7f4ef;
+  padding: 8px 12px;
+  font-weight: 900;
+  font-size: 0.86rem;
+}
+
+.status-pill.unstable {
+  border-color: rgba(216, 79, 49, 0.24);
+  color: #9c2f1a;
+  background: #fff0ea;
+}
+
+.panel,
+.plot-card,
+.metrics article,
+.study-summary {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+}
+
+.section-heading,
+.toolbar,
+.legend,
+.transfer,
+.button-pair {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-heading,
+.toolbar {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.transfer {
+  font-weight: 900;
+}
+
+.fraction {
+  flex: 1;
+  display: grid;
+  gap: 7px;
+}
+
+.fraction > div {
+  height: 2px;
+  background: var(--ink);
+}
+
+input {
+  width: 100%;
+  border: 1px solid #c8d0ca;
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  padding: 10px 11px;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(15, 122, 108, 0.12);
+}
+
+input[type="range"] {
+  padding: 0;
+  accent-color: var(--accent);
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.hint {
+  line-height: 1.45;
+  font-size: 0.9rem;
+}
+
+.examples,
+.grid-2,
+.switch-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.chip,
+.icon-button,
+.mini-button {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.icon-button {
+  width: 40px;
+  font-size: 1.2rem;
+}
+
+.mini-button {
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.82rem;
+}
+
+.chip.active,
+.chip:hover,
+.icon-button:hover,
+.mini-button:hover {
+  border-color: rgba(15, 122, 108, 0.45);
+  background: #edf8f4;
+}
+
+output {
+  color: var(--accent);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-list {
+  display: grid;
+  gap: 10px;
+}
+
+.coefficient-row {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr) 74px;
+  align-items: center;
+  gap: 8px;
+}
+
+.coefficient-row span {
+  color: var(--muted);
+  font-weight: 900;
+  font-size: 0.82rem;
+}
+
+.switch-grid label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px;
+  background: #fbfcfa;
+}
+
+.toolbar {
+  padding: 2px 4px 0;
+}
+
+.toolbar h2 {
+  font-size: 1.45rem;
+  line-height: 1.05;
+}
+
+.legend {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.legend .line {
+  height: 3px;
+  background: var(--blue);
+}
+
+.legend .pole {
+  border: 2px solid var(--red);
+  transform: rotate(45deg);
+}
+
+.legend .zero {
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+}
+
+.legend .selected {
+  background: var(--accent);
+  border-radius: 50%;
+}
+
+.plot-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(300px, 0.75fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.plot-card {
+  min-width: 0;
+  padding: 12px;
+}
+
+.root-card {
+  min-height: 0;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  border-radius: 6px;
+  background: #fff;
+}
+
+#rootCanvas {
+  height: min(58vh, 560px);
+  min-height: 420px;
+}
+
+#stepCanvas {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metrics article,
+.study-summary {
+  display: grid;
+  gap: 7px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.metrics strong,
+.study-summary li {
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+  line-height: 1.38;
+}
+
+.metrics strong {
+  font-weight: 850;
+}
+
+.study-summary ol {
+  display: grid;
+  gap: 7px;
+  padding-left: 22px;
+}
+
+@media (max-width: 1120px) {
+  .app-shell,
+  .plot-grid,
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    max-height: none;
+  }
+
+  .root-card {
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 10px;
+  }
+
+  .toolbar,
+  .section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .examples,
+  .grid-2,
+  .switch-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .coefficient-row {
+    grid-template-columns: 1fr;
+  }
+}
