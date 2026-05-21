@@ -422,6 +422,23 @@ function fitBounds(points) {
   return { minX: cx - span / 2, maxX: cx + span / 2, minY: cy - span / 2, maxY: cy + span / 2 };
 }
 
+function fitRootLocusBounds(allPoints, anchors) {
+  const anchorPoints = anchors.filter((p) => Number.isFinite(p.re) && Number.isFinite(p.im));
+  if (!anchorPoints.length) return fitBounds(allPoints);
+
+  const cx = anchorPoints.reduce((sum, p) => sum + p.re, 0) / anchorPoints.length;
+  const cy = anchorPoints.reduce((sum, p) => sum + p.im, 0) / anchorPoints.length;
+  const anchorRadius = Math.max(1, ...anchorPoints.map((p) => Math.hypot(p.re - cx, p.im - cy)));
+  const distances = allPoints
+    .filter((p) => Number.isFinite(p.re) && Number.isFinite(p.im))
+    .map((p) => Math.hypot(p.re - cx, p.im - cy))
+    .sort((a, b) => a - b);
+  const q90 = distances.length ? distances[Math.floor(distances.length * 0.9)] : anchorRadius;
+  const viewRadius = Math.max(anchorRadius * 3.2, Math.min(q90, anchorRadius * 7));
+  const visibleLocus = allPoints.filter((p) => Math.hypot(p.re - cx, p.im - cy) <= viewRadius);
+  return fitBounds([...visibleLocus, ...anchorPoints]);
+}
+
 function makeMap(bounds, width, height, pad = 38) {
   const innerW = width - pad * 2;
   const innerH = height - pad * 2;
@@ -503,7 +520,8 @@ function drawRootLocus() {
   const data = getRootLocusData();
   const analysis = analyzeRootLocus();
   const selected = roots(closedLoopPolynomial(state.k));
-  const bounds = fitBounds([...data.allPoints, ...analysis.poles, ...analysis.zeros, ...selected, c(0, 0)]);
+  const breakpointPoints = analysis.breakpoints.map((item) => c(item.s, 0));
+  const bounds = fitRootLocusBounds(data.allPoints, [...analysis.poles, ...analysis.zeros, ...breakpointPoints, c(0, 0)]);
   const map = makeMap(bounds, width, height);
   state.lastMap = { bounds, width, height, pad: map.pad };
 
