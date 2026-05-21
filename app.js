@@ -10,6 +10,12 @@ const state = {
   zeta: 0.5,
   wn: 3,
   lastMap: null,
+  viewBounds: null,
+  defaultBounds: null,
+  isPanning: false,
+  panStart: null,
+  panStartBounds: null,
+  didPan: false,
 };
 
 const els = {
@@ -26,6 +32,9 @@ const els = {
   denDegreeUp: $("denDegreeUp"),
   denDegreeDown: $("denDegreeDown"),
   rootCanvas: $("rootCanvas"),
+  rootPanel: $("rootPanel"),
+  fitGraphButton: $("fitGraphButton"),
+  fullscreenGraphButton: $("fullscreenGraphButton"),
   stepCanvas: $("stepCanvas"),
   systemStatus: $("systemStatus"),
   closedPoles: $("closedPoles"),
@@ -249,6 +258,7 @@ function buildSliderGroup(container, type, values) {
       if (type === "num") state.numerator = trimLeadingZeros(target);
       else state.denominator = trimLeadingZeros(target);
       syncInputsFromState();
+      resetGraphView();
       render(false);
     };
 
@@ -273,6 +283,7 @@ function changeDegree(type, delta) {
   if (type === "num") state.numerator = target;
   else state.denominator = target;
   syncInputsFromState();
+  resetGraphView();
   render();
 }
 
@@ -439,6 +450,15 @@ function fitRootLocusBounds(allPoints, anchors) {
   return fitBounds([...visibleLocus, ...anchorPoints]);
 }
 
+function cloneBounds(bounds) {
+  return { minX: bounds.minX, maxX: bounds.maxX, minY: bounds.minY, maxY: bounds.maxY };
+}
+
+function resetGraphView() {
+  state.viewBounds = null;
+  state.defaultBounds = null;
+}
+
 function makeMap(bounds, width, height, pad = 38) {
   const innerW = width - pad * 2;
   const innerH = height - pad * 2;
@@ -521,7 +541,10 @@ function drawRootLocus() {
   const analysis = analyzeRootLocus();
   const selected = roots(closedLoopPolynomial(state.k));
   const breakpointPoints = analysis.breakpoints.map((item) => c(item.s, 0));
-  const bounds = fitRootLocusBounds(data.allPoints, [...analysis.poles, ...analysis.zeros, ...breakpointPoints, c(0, 0)]);
+  const defaultBounds = fitRootLocusBounds(data.allPoints, [...analysis.poles, ...analysis.zeros, ...breakpointPoints, c(0, 0)]);
+  state.defaultBounds = cloneBounds(defaultBounds);
+  if (!state.viewBounds) state.viewBounds = cloneBounds(defaultBounds);
+  const bounds = state.viewBounds;
   const map = makeMap(bounds, width, height);
   state.lastMap = { bounds, width, height, pad: map.pad };
 
@@ -817,6 +840,10 @@ function render(rebuildSliders = true) {
 }
 
 function handleCanvasClick(event) {
+  if (state.didPan) {
+    state.didPan = false;
+    return;
+  }
   if (!state.lastMap) return;
   const rect = els.rootCanvas.getBoundingClientRect();
   const map = makeMap(state.lastMap.bounds, state.lastMap.width, state.lastMap.height, state.lastMap.pad);
@@ -832,12 +859,87 @@ function handleCanvasClick(event) {
   render(false);
 }
 
+function zoomGraph(event) {
+  if (!state.lastMap || !state.viewBounds) return;
+  event.preventDefault();
+  const rect = els.rootCanvas.getBoundingClientRect();
+  const map = makeMap(state.lastMap.bounds, state.lastMap.width, state.lastMap.height, state.lastMap.pad);
+  const cursor = map.toPlane(event.clientX - rect.left, event.clientY - rect.top);
+  const factor = event.deltaY < 0 ? 0.82 : 1.22;
+  const b = state.viewBounds;
+  state.viewBounds = {
+    minX: cursor.re + (b.minX - cursor.re) * factor,
+    maxX: cursor.re + (b.maxX - cursor.re) * factor,
+    minY: cursor.im + (b.minY - cursor.im) * factor,
+    maxY: cursor.im + (b.maxY - cursor.im) * factor,
+  };
+  drawRootLocus();
+}
+
+function startPan(event) {
+  if (!state.lastMap || event.button !== 0) return;
+  state.isPanning = true;
+  state.didPan = false;
+  state.panStart = { x: event.clientX, y: event.clientY };
+  state.panStartBounds = cloneBounds(state.viewBounds || state.lastMap.bounds);
+  els.rootCanvas.classList.add("dragging");
+  els.rootCanvas.setPointerCapture?.(event.pointerId);
+}
+
+function movePan(event) {
+  if (!state.isPanning || !state.panStart || !state.panStartBounds || !state.lastMap) return;
+  const map = makeMap(state.panStartBounds, state.lastMap.width, state.lastMap.height, state.lastMap.pad);
+  const start = map.toPlane(state.panStart.x - els.rootCanvas.getBoundingClientRect().left, state.panStart.y - els.rootCanvas.getBoundingClientRect().top);
+  const now = map.toPlane(event.clientX - els.rootCanvas.getBoundingClientRect().left, event.clientY - els.rootCanvas.getBoundingClientRect().top);
+  const dx = start.re - now.re;
+  const dy = start.im - now.im;
+  if (Math.hypot(event.clientX - state.panStart.x, event.clientY - state.panStart.y) > 3) state.didPan = true;
+  state.viewBounds = {
+    minX: state.panStartBounds.minX + dx,
+    maxX: state.panStartBounds.maxX + dx,
+    minY: state.panStartBounds.minY + dy,
+    maxY: state.panStartBounds.maxY + dy,
+  };
+  drawRootLocus();
+}
+
+function endPan(event) {
+  state.isPanning = false;
+  state.panStart = null;
+  state.panStartBounds = null;
+  els.rootCanvas.classList.remove("dragging");
+  els.rootCanvas.releasePointerCapture?.(event.pointerId);
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    await els.rootPanel.requestFullscreen?.();
+    els.fullscreenGraphButton.textContent = "Sair";
+  } else {
+    await document.exitFullscreen?.();
+    els.fullscreenGraphButton.textContent = "Tela cheia";
+  }
+  window.setTimeout(() => render(false), 100);
+}
+
 function bindEvents() {
-  els.numInput.addEventListener("input", () => render());
-  els.denInput.addEventListener("input", () => render());
+  els.numInput.addEventListener("input", () => {
+    resetGraphView();
+    render();
+  });
+  els.denInput.addEventListener("input", () => {
+    resetGraphView();
+    render();
+  });
   els.gainSlider.addEventListener("input", () => render(false));
-  els.kMinInput.addEventListener("input", () => render(false));
-  els.kMaxInput.addEventListener("input", () => render(false));
+  els.kMinInput.addEventListener("input", () => {
+    resetGraphView();
+    render(false);
+  });
+  els.kMaxInput.addEventListener("input", () => {
+    resetGraphView();
+    render(false);
+  });
   [els.showAsymptotes, els.showRealAxis, els.showBreakpoints, els.showImagCross, els.showDesignGrid, els.showAngles].forEach((el) =>
     el.addEventListener("change", () => render(false)),
   );
@@ -849,6 +951,7 @@ function bindEvents() {
     state.numerator = state.currentExample.numerator.slice();
     state.denominator = state.currentExample.denominator.slice();
     syncInputsFromState();
+    resetGraphView();
     render();
   });
   document.querySelectorAll(".chip").forEach((button) => {
@@ -859,10 +962,25 @@ function bindEvents() {
       state.denominator = parseCoefficients(button.dataset.den);
       state.currentExample = { numerator: state.numerator.slice(), denominator: state.denominator.slice() };
       syncInputsFromState();
+      resetGraphView();
       render();
     });
   });
   els.rootCanvas.addEventListener("click", handleCanvasClick);
+  els.rootCanvas.addEventListener("wheel", zoomGraph, { passive: false });
+  els.rootCanvas.addEventListener("pointerdown", startPan);
+  els.rootCanvas.addEventListener("pointermove", movePan);
+  els.rootCanvas.addEventListener("pointerup", endPan);
+  els.rootCanvas.addEventListener("pointerleave", endPan);
+  els.fitGraphButton.addEventListener("click", () => {
+    state.viewBounds = state.defaultBounds ? cloneBounds(state.defaultBounds) : null;
+    render(false);
+  });
+  els.fullscreenGraphButton.addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", () => {
+    els.fullscreenGraphButton.textContent = document.fullscreenElement ? "Sair" : "Tela cheia";
+    render(false);
+  });
   window.addEventListener("resize", () => render(false));
 }
 
