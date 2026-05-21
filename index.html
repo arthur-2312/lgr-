@@ -110,9 +110,13 @@
         </div>
 
         <div class="plot-grid">
-          <article class="plot-card root-card">
+          <article class="plot-card root-card" id="rootPanel">
+            <div class="graph-actions">
+              <button id="fitGraphButton" class="mini-button">Recentrar</button>
+              <button id="fullscreenGraphButton" class="mini-button">Tela cheia</button>
+            </div>
             <canvas id="rootCanvas" width="960" height="620"></canvas>
-            <p id="clickReadout" class="hint">Clique no LGR para estimar K naquele ponto.</p>
+            <p id="clickReadout" class="hint">Arraste para mover, use a roda para zoom e clique no LGR para estimar K.</p>
           </article>
           <article class="plot-card">
             <div class="section-heading compact">
