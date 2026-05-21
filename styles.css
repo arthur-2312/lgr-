@@ -331,7 +331,17 @@ output {
 }
 
 .root-card {
+  position: relative;
   min-height: 0;
+}
+
+.graph-actions {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
 }
 
 canvas {
@@ -344,11 +354,38 @@ canvas {
 #rootCanvas {
   height: min(58vh, 560px);
   min-height: 420px;
+  cursor: grab;
+  touch-action: none;
+}
+
+#rootCanvas.dragging {
+  cursor: grabbing;
 }
 
 #stepCanvas {
   aspect-ratio: 16 / 9;
   height: auto;
+}
+
+.root-card:fullscreen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100vw;
+  height: 100vh;
+  padding: 18px;
+  background: #fff;
+}
+
+.root-card:fullscreen #rootCanvas {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+}
+
+.root-card:fullscreen .graph-actions {
+  top: 18px;
+  right: 18px;
 }
 
 .metrics {
